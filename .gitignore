@@ -1,0 +1,38 @@
+# ESPHome Dial Menu - .gitignore
+
+# ESPHome build artifacts
+.esphome/
+__pycache__/
+*.pyc
+
+# Secrets - NEVER commit these!
+secrets.yaml
+
+# Python virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+
+# Downloaded fonts (can be re-downloaded)
+fonts/montserrat/*.ttf
+
+# Backup files
+*.bak
+*.backup
+M5Dial-UserDemo/
+M5-ProductExampleCodes/
