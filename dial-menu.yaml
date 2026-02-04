@@ -25,6 +25,19 @@ psram:
 logger:
   level: DEBUG
 
+# === Custom fonts with French characters ===
+font:
+  - file: "gfonts://Montserrat"
+    id: montserrat_fr_14
+    size: 14
+    bpp: 4
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°àâäçèéêëîïôùûüÿœæÀÂÄÇÈÉÊËÎÏÔÙÛÜŸŒÆ"
+  - file: "gfonts://Montserrat"
+    id: montserrat_fr_18
+    size: 18
+    bpp: 4
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°àâäçèéêëîïôùûüÿœæÀÂÄÇÈÉÊËÎÏÔÙÛÜŸŒÆ"
+
 external_components:
   - source:
       type: local
@@ -99,10 +112,14 @@ sensor:
     pin_a: GPIO40
     pin_b: GPIO41
     resolution: 1
-    on_value:
+    on_clockwise:
       then:
         - lambda: |-
-            id(menu_controller).on_encoder_activity();
+            id(menu_controller).on_encoder_rotate(1);
+    on_anticlockwise:
+      then:
+        - lambda: |-
+            id(menu_controller).on_encoder_rotate(-1);
 
 binary_sensor:
   - platform: gpio
@@ -127,11 +144,23 @@ binary_sensor:
           - lambda: |-
               id(menu_controller).on_long_press();
 
-# === Test Switch ===
+# === Test Switches ===
 switch:
   - platform: template
-    id: test_switch
-    name: "Test Switch"
+    id: light_living_room
+    name: "Salon"
+    optimistic: true
+  - platform: template
+    id: light_bedroom
+    name: "Chambre"
+    optimistic: true
+  - platform: template
+    id: light_kitchen
+    name: "Cuisine"
+    optimistic: true
+  - platform: template
+    id: light_bathroom
+    name: "Salle de bain"
     optimistic: true
 
 # === LVGL (minimal config - UI is created by dial_menu) ===
@@ -173,6 +202,15 @@ lvgl:
             id: _font_28
             hidden: true
             text_font: montserrat_28
+        # French font labels to force compilation
+        - label:
+            id: _font_fr_14
+            hidden: true
+            text_font: montserrat_fr_14
+        - label:
+            id: _font_fr_18
+            hidden: true
+            text_font: montserrat_fr_18
 
 # === Dial Menu - That's it! ===
 dial_menu:
@@ -181,6 +219,8 @@ dial_menu:
   time_id: sntp_time
   idle_timeout: 30s
   language: fr  # Options: en, fr
+  font_14: montserrat_fr_14  # Custom font with French accents
+  font_18: montserrat_fr_18
   apps:
     - name: "Settings"
       icon_type: settings
@@ -203,8 +243,20 @@ dial_menu:
     - name: "Light"
       icon_type: light
       color: 0xFFB300
-    - name: "Power"
+    - name: "Lumières"
       type: switch
-      icon_type: power
-      color: 0xE91E63
-      switch_id: test_switch
+      icon_type: light
+      color: 0xFFB300
+      switches:
+        - switch_id: light_living_room
+          name: "Salon"
+          color: 0xFFB300
+        - switch_id: light_bedroom
+          name: "Chambre"
+          color: 0x9C27B0
+        - switch_id: light_kitchen
+          name: "Cuisine"
+          color: 0x03A964
+        - switch_id: light_bathroom
+          name: "Bathroom"
+          color: 0x577EFF

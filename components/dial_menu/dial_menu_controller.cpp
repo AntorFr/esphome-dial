@@ -157,11 +157,11 @@ void DialMenuController::create_center_circle() {
   lv_obj_set_style_border_color(center, lv_color_hex(0x333333), 0);
   lv_obj_clear_flag(center, LV_OBJ_FLAG_SCROLLABLE);
   
-  // App name label
+  // App name label - use custom font with French accents if available
   this->app_name_label_ = lv_label_create(center);
   lv_obj_align(this->app_name_label_, LV_ALIGN_CENTER, 0, -5);
   lv_obj_set_style_text_color(this->app_name_label_, lv_color_hex(0xFFFFFF), 0);
-  lv_obj_set_style_text_font(this->app_name_label_, &lv_font_montserrat_14, 0);
+  lv_obj_set_style_text_font(this->app_name_label_, this->get_font_14(), 0);
   if (!this->apps_.empty()) {
     lv_label_set_text(this->app_name_label_, this->apps_[0]->get_name().c_str());
   } else {
@@ -172,7 +172,7 @@ void DialMenuController::create_center_circle() {
   this->hint_label_ = lv_label_create(center);
   lv_obj_align(this->hint_label_, LV_ALIGN_CENTER, 0, 16);
   lv_obj_set_style_text_color(this->hint_label_, lv_color_hex(0x555555), 0);
-  lv_obj_set_style_text_font(this->hint_label_, &lv_font_montserrat_14, 0);
+  lv_obj_set_style_text_font(this->hint_label_, this->get_font_14(), 0);
   lv_label_set_text(this->hint_label_, "Press to open");
 }
 
@@ -200,10 +200,10 @@ void DialMenuController::create_app_button(DialApp *app) {
   // Add to group for encoder navigation
   lv_group_add_obj(this->group_, btn);
   
-  // Add icon label using LVGL built-in symbols
+  // Add icon label using LVGL built-in symbols (must use built-in font for FontAwesome icons)
   lv_obj_t *icon_label = lv_label_create(btn);
   lv_obj_set_style_text_color(icon_label, lv_color_hex(0xFFFFFF), 0);
-  lv_obj_set_style_text_font(icon_label, &lv_font_montserrat_14, 0);
+  lv_obj_set_style_text_font(icon_label, &lv_font_montserrat_14, 0);  // Built-in font has FontAwesome symbols
   lv_obj_center(icon_label);
   
   // Use LVGL symbol based on icon type, or first letter as fallback
@@ -230,6 +230,9 @@ void DialMenuController::create_app_button(DialApp *app) {
 
 void DialMenuController::button_event_cb(lv_event_t *e) {
   if (g_controller == nullptr) return;
+  
+  // Ignore encoder events when an app is open
+  if (g_controller->app_open_) return;
   
   lv_event_code_t code = lv_event_get_code(e);
   lv_obj_t *btn = lv_event_get_target(e);
@@ -314,6 +317,11 @@ void DialMenuController::open_selected_app() {
   
   DialApp *app = this->get_selected_app();
   if (app != nullptr) {
+    // Only open apps that have a UI - fake apps should not be "opened"
+    if (!app->needs_ui()) {
+      ESP_LOGD(TAG, "App '%s' has no UI, ignoring click", app->get_name().c_str());
+      return;
+    }
     ESP_LOGI(TAG, "Opening app: %s", app->get_name().c_str());
     this->app_open_ = true;
     app->on_enter();
@@ -334,6 +342,12 @@ void DialMenuController::close_current_app() {
   if (this->launcher_page_ != nullptr) {
     ESP_LOGI(TAG, "Returning to launcher");
     lv_scr_load(this->launcher_page_);
+    
+    // Re-focus on the selected app button in the group
+    if (app != nullptr && app->get_lvgl_obj() != nullptr) {
+      lv_group_focus_obj(app->get_lvgl_obj());
+      this->update_focus_style(app, true);
+    }
   }
 }
 
@@ -346,6 +360,14 @@ void DialMenuController::on_app_focused(int index) {
 void DialMenuController::on_app_clicked(int index) {
   ESP_LOGI(TAG, "App clicked: %d", index);
   this->reset_idle_timer();
+  
+  // Ignore click if it follows a long press (button release after closing app)
+  if (this->ignore_next_click_) {
+    ESP_LOGD(TAG, "Ignoring app click after long press");
+    this->ignore_next_click_ = false;
+    return;
+  }
+  
   this->select_app(index);
   this->open_selected_app();
 }
@@ -353,6 +375,13 @@ void DialMenuController::on_app_clicked(int index) {
 void DialMenuController::on_button_click() {
   ESP_LOGI(TAG, "Button click detected");
   this->reset_idle_timer();
+  
+  // Ignore click if it follows a long press (button release after closing app)
+  if (this->ignore_next_click_) {
+    ESP_LOGD(TAG, "Ignoring click after long press");
+    this->ignore_next_click_ = false;
+    return;
+  }
   
   // If idle screen is active, wake up
   if (this->idle_active_) {
@@ -385,6 +414,8 @@ void DialMenuController::on_long_press() {
   if (this->app_open_) {
     // If an app is open, close it and return to launcher
     this->close_current_app();
+    // Set flag to ignore the next click (button release)
+    this->ignore_next_click_ = true;
   }
 }
 
@@ -395,6 +426,25 @@ void DialMenuController::on_encoder_activity() {
   if (this->idle_active_) {
     this->wake_up();
   }
+}
+
+void DialMenuController::on_encoder_rotate(int delta) {
+  this->reset_idle_timer();
+  
+  // If idle screen is active, wake up and don't process further
+  if (this->idle_active_) {
+    this->wake_up();
+    return;
+  }
+  
+  // If an app is open, forward the rotation to the app
+  if (this->app_open_) {
+    DialApp *app = this->get_selected_app();
+    if (app != nullptr) {
+      app->on_encoder_rotate(delta);
+    }
+  }
+  // If on launcher, navigation is handled by LVGL group automatically
 }
 
 void DialMenuController::reset_idle_timer() {

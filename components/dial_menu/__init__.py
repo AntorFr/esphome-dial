@@ -26,6 +26,7 @@ from esphome.const import (
 )
 from esphome.components import switch
 from esphome.components import time as time_component
+from esphome.components import font
 
 CODEOWNERS = ["@antorfr"]
 DEPENDENCIES = ["lvgl"]
@@ -42,9 +43,12 @@ CONF_RADIUS = "radius"
 CONF_BUTTON_SIZE = "button_size"
 CONF_BUTTON_SIZE_FOCUSED = "button_size_focused"
 CONF_SWITCH_ID = "switch_id"
+CONF_SWITCHES = "switches"
 CONF_IDLE_TIMEOUT = "idle_timeout"
 CONF_TIME_ID = "time_id"
 CONF_LANGUAGE = "language"
+CONF_FONT_14 = "font_14"
+CONF_FONT_18 = "font_18"
 
 # Supported languages
 LANGUAGES = ["en", "fr"]
@@ -107,7 +111,16 @@ def app_schema(app_type):
     return cv.Schema(base)
 
 
-# Schéma pour une app - now with conditional switch_id
+# Schéma pour un switch individuel dans la liste
+SWITCH_ITEM_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_SWITCH_ID): cv.use_id(switch.Switch),
+        cv.Required(CONF_NAME): cv.string,
+        cv.Optional(CONF_COLOR): cv.hex_uint32_t,
+    }
+)
+
+# Schéma pour une app - supports single switch_id or list of switches
 APP_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(DialApp),
@@ -116,6 +129,7 @@ APP_SCHEMA = cv.Schema(
         cv.Optional(CONF_COLOR): cv.hex_uint32_t,
         cv.Optional(CONF_TYPE, default="generic"): cv.string,
         cv.Optional(CONF_SWITCH_ID): cv.use_id(switch.Switch),
+        cv.Optional(CONF_SWITCHES): cv.ensure_list(SWITCH_ITEM_SCHEMA),
     }
 )
 
@@ -134,6 +148,8 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_IDLE_TIMEOUT, default="30s"): cv.positive_time_period_milliseconds,
         cv.Optional(CONF_TIME_ID): cv.use_id(time_component.RealTimeClock),
         cv.Optional(CONF_LANGUAGE, default="en"): cv.one_of(*LANGUAGES, lower=True),
+        cv.Optional(CONF_FONT_14): cv.use_id(font.Font),
+        cv.Optional(CONF_FONT_18): cv.use_id(font.Font),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -158,6 +174,14 @@ async def to_code(config):
     apps = config.get(CONF_APPS, [])
     radius = config.get(CONF_RADIUS, 85)
     
+    # Get optional custom fonts
+    font_14_var = None
+    font_18_var = None
+    if CONF_FONT_14 in config:
+        font_14_var = await cg.get_variable(config[CONF_FONT_14])
+    if CONF_FONT_18 in config:
+        font_18_var = await cg.get_variable(config[CONF_FONT_18])
+    
     # Calculate positions for icons
     num_apps = len(apps)
     positions = calculate_icon_positions(num_apps, radius) if num_apps > 0 else []
@@ -173,10 +197,22 @@ async def to_code(config):
             app_id.type = SwitchApp
             app_var = cg.new_Pvariable(app_id)
             
-            # Set the switch entity if provided
-            if CONF_SWITCH_ID in app_conf:
+            # Pass custom font to SwitchApp
+            if font_14_var is not None:
+                cg.add(app_var.set_font_14(font_14_var))
+            
+            # Check for multiple switches first
+            if CONF_SWITCHES in app_conf:
+                for sw_conf in app_conf[CONF_SWITCHES]:
+                    sw = await cg.get_variable(sw_conf[CONF_SWITCH_ID])
+                    sw_name = sw_conf[CONF_NAME]
+                    sw_color = sw_conf.get(CONF_COLOR, DEFAULT_COLORS[i % len(DEFAULT_COLORS)])
+                    cg.add(app_var.add_switch(sw, sw_name, sw_color))
+            # Fallback to single switch_id
+            elif CONF_SWITCH_ID in app_conf:
                 sw = await cg.get_variable(app_conf[CONF_SWITCH_ID])
-                cg.add(app_var.set_switch(sw))
+                color = app_conf.get(CONF_COLOR, DEFAULT_COLORS[i % len(DEFAULT_COLORS)])
+                cg.add(app_var.add_switch(sw, app_conf[CONF_NAME], color))
         else:
             # Generic DialApp
             app_var = cg.new_Pvariable(app_id)
@@ -217,3 +253,12 @@ async def to_code(config):
     # Language setting
     lang = config.get(CONF_LANGUAGE, "en")
     cg.add(var.set_language(lang))
+
+    # Custom fonts for French accents support
+    if CONF_FONT_14 in config:
+        font_14_var = await cg.get_variable(config[CONF_FONT_14])
+        cg.add(var.set_font_14(font_14_var))
+    
+    if CONF_FONT_18 in config:
+        font_18_var = await cg.get_variable(config[CONF_FONT_18])
+        cg.add(var.set_font_18(font_18_var))

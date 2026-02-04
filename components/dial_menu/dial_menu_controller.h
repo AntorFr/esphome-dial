@@ -11,6 +11,7 @@
 #include "esphome/core/log.h"
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "esphome/components/time/real_time_clock.h"
+#include "esphome/components/font/font.h"
 #include "idle_screen.h"
 #include <vector>
 #include <string>
@@ -85,12 +86,22 @@ class DialMenuController : public Component {
   void set_button_size_focused(int size) { this->button_size_focused_ = size; }
   void set_idle_timeout(uint32_t timeout_ms) { this->idle_timeout_ms_ = timeout_ms; }
   void set_time(time::RealTimeClock *time) { this->time_ = time; }
+  void set_font_14(font::Font *font) { this->font_14_ = font; }
+  void set_font_18(font::Font *font) { this->font_18_ = font; }
   void set_language(const std::string &lang) {
     if (lang == "fr") {
       this->idle_screen_.set_language(Language::FR);
     } else {
       this->idle_screen_.set_language(Language::EN);
     }
+  }
+  
+  // Get LVGL font (use custom if set, otherwise fallback to built-in)
+  const lv_font_t* get_font_14() const { 
+    return this->font_14_ ? this->font_14_->get_lv_font() : &lv_font_montserrat_14; 
+  }
+  const lv_font_t* get_font_18() const { 
+    return this->font_18_ ? this->font_18_->get_lv_font() : &lv_font_montserrat_18; 
   }
   
   // Navigation
@@ -108,7 +119,8 @@ class DialMenuController : public Component {
   // Hardware button callbacks
   void on_button_click();     // Short click - open app or perform action
   void on_long_press();       // Long press - goes back to launcher
-  void on_encoder_activity(); // Encoder rotation - wake up if idle
+  void on_encoder_activity(); // Encoder rotation - wake up if idle (deprecated)
+  void on_encoder_rotate(int delta); // Encoder rotation with direction
   
   // Idle screen / screensaver
   void reset_idle_timer();  // Reset inactivity timer
@@ -137,6 +149,10 @@ class DialMenuController : public Component {
   int button_size_{50};
   int button_size_focused_{58};
   
+  // Custom fonts (optional, nullptr = use built-in)
+  font::Font *font_14_{nullptr};
+  font::Font *font_18_{nullptr};
+  
   // LVGL objects
   lv_obj_t *launcher_page_{nullptr};
   lv_obj_t *app_name_label_{nullptr};
@@ -149,6 +165,10 @@ class DialMenuController : public Component {
   uint32_t idle_timeout_ms_{30000};  // Default 30 seconds
   uint32_t last_activity_time_{0};
   bool idle_active_{false};
+  int last_encoder_value_{0};
+  
+  // Flag to ignore the click event after a long press
+  bool ignore_next_click_{false};
 };
 
 }  // namespace dial_menu
