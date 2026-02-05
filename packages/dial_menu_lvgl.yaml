@@ -1,7 +1,11 @@
 # Dial Menu LVGL Configuration Package
 # Enables LVGL with the required features for dial_menu component
 #
-# Usage in your main YAML:
+# Usage (from GitHub):
+#   packages:
+#     lvgl_config: github://antorfr/esphome-dial/packages/dial_menu_lvgl.yaml@main
+#
+# Usage (local):
 #   packages:
 #     lvgl_config: !include packages/dial_menu_lvgl.yaml
 

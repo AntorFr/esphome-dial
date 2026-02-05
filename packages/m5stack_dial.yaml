@@ -1,7 +1,11 @@
 # M5Stack Dial Hardware Configuration Package
 # Include this in your ESPHome config to set up the M5Stack Dial hardware
 #
-# Usage in your main YAML:
+# Usage (from GitHub):
+#   packages:
+#     m5dial: github://antorfr/esphome-dial/packages/m5stack_dial.yaml@main
+#
+# Usage (local):
 #   packages:
 #     m5dial: !include packages/m5stack_dial.yaml
 

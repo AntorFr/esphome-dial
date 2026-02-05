@@ -1,23 +1,22 @@
-# ESPHome Dial Menu - M5Stack Dial (Simplified)
-# This example shows the minimal configuration needed
+# ESPHome Dial Menu - Minimal Example
+# Copy this to ESPHome Dashboard and it will work!
 #
-# All packages are imported directly from GitHub - no local files needed!
+# All dependencies are imported from GitHub - nothing else needed.
 #
 substitutions:
-  device_name: dial-menu
-  friendly_name: Dial Menu
+  device_name: my-dial
+  friendly_name: My Dial
 
 esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
 
-# Import packages from GitHub
+# === Import everything from GitHub ===
 packages:
   m5dial: github://antorfr/esphome-dial/packages/m5stack_dial.yaml@main
   lvgl_config: github://antorfr/esphome-dial/packages/dial_menu_lvgl.yaml@main
-  french_fonts: github://antorfr/esphome-dial/packages/french_fonts.yaml@main  # Optional: for French
+  # french_fonts: github://antorfr/esphome-dial/packages/french_fonts.yaml@main  # Uncomment for French
 
-# Import the dial_menu component from GitHub
 external_components:
   - source: github://antorfr/esphome-dial@main
     components: [dial_menu]
@@ -25,15 +24,12 @@ external_components:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  ap:
-    ssid: "${device_name}-fallback"
 
 time:
   - platform: sntp
     id: sntp_time
-    timezone: Europe/Paris
 
-# === Encoder events for dial_menu ===
+# === Encoder events (extend from package) ===
 sensor:
   - platform: rotary_encoder
     id: !extend dial_encoder
@@ -56,41 +52,24 @@ binary_sensor:
         then:
           - lambda: id(menu_controller).on_long_press();
 
-# === Test Switches ===
+# === Your switches ===
 switch:
   - platform: template
-    id: light_living_room
-    name: "Salon"
-    optimistic: true
-  - platform: template
-    id: light_bedroom
-    name: "Chambre"
+    id: my_light
+    name: "Light"
     optimistic: true
 
-# === Dial Menu Configuration ===
+# === Dial Menu ===
 dial_menu:
   id: menu_controller
   display_id: round_display
   time_id: sntp_time
-  idle_timeout: 30s
-  language: fr
-  font_14: montserrat_fr_14  # Use French fonts
-  font_18: montserrat_fr_18
   apps:
     - name: "Settings"
       icon_type: settings
       color: 0xFD5C4C
-    - name: "WiFi"
-      icon_type: wifi
-      color: 0x577EFF
-    - name: "Lumières"
+    - name: "Light"
       type: switch
       icon_type: light
+      switch_id: my_light
       color: 0xFFB300
-      switches:
-        - switch_id: light_living_room
-          name: "Salon"
-          color: 0xFFB300
-        - switch_id: light_bedroom
-          name: "Chambre"
-          color: 0x9C27B0

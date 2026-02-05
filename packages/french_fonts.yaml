@@ -1,7 +1,11 @@
 # French Font Support Package for Dial Menu
 # Include this to support French accented characters (é, è, à, ç, etc.)
 #
-# Usage in your main YAML:
+# Usage (from GitHub):
+#   packages:
+#     french_fonts: github://antorfr/esphome-dial/packages/french_fonts.yaml@main
+#
+# Usage (local):
 #   packages:
 #     french_fonts: !include packages/french_fonts.yaml
 #
