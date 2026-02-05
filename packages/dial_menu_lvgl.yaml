@@ -1,0 +1,39 @@
+# Dial Menu LVGL Configuration Package
+# Enables LVGL with the required features for dial_menu component
+#
+# Usage in your main YAML:
+#   packages:
+#     lvgl_config: !include packages/dial_menu_lvgl.yaml
+
+# Note: LVGL requires these hidden widgets to enable the button component
+# and font sizes used by dial_menu
+
+lvgl:
+  displays:
+    - round_display
+  touchscreens:
+    - dial_touch
+  encoders:
+    - sensor: dial_encoder
+      enter_button: dial_button
+  buffer_size: 25%
+  default_font: montserrat_48
+  pages:
+    - id: _lvgl_init_page
+      widgets:
+        # These widgets enable LVGL features needed by dial_menu
+        - button:
+            id: _btn
+            hidden: true
+        - label:
+            id: _lv14
+            hidden: true
+            text_font: montserrat_14
+        - label:
+            id: _lv18
+            hidden: true
+            text_font: montserrat_18
+        - label:
+            id: _lv28
+            hidden: true
+            text_font: montserrat_28

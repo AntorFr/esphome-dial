@@ -1,0 +1,98 @@
+# ESPHome Dial Menu - M5Stack Dial (Simplified)
+# This example shows the minimal configuration needed
+#
+substitutions:
+  device_name: dial-menu
+  friendly_name: Dial Menu
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+# Include M5Stack Dial hardware and LVGL configuration
+packages:
+  m5dial: !include packages/m5stack_dial.yaml
+  lvgl_config: !include packages/dial_menu_lvgl.yaml
+  french_fonts: !include packages/french_fonts.yaml  # Optional: only for French
+
+logger:
+  level: DEBUG
+
+external_components:
+  - source:
+      type: local
+      path: components
+    components: [dial_menu]
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${device_name}-fallback"
+
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: Europe/Paris
+
+# === Encoder events for dial_menu ===
+sensor:
+  - platform: rotary_encoder
+    id: !extend dial_encoder
+    on_clockwise:
+      - lambda: id(menu_controller).on_encoder_rotate(1);
+    on_anticlockwise:
+      - lambda: id(menu_controller).on_encoder_rotate(-1);
+
+binary_sensor:
+  - platform: gpio
+    id: !extend dial_button
+    on_multi_click:
+      - timing:
+          - ON for at most 400ms
+          - OFF for at least 50ms
+        then:
+          - lambda: id(menu_controller).on_button_click();
+      - timing:
+          - ON for at least 500ms
+        then:
+          - lambda: id(menu_controller).on_long_press();
+
+# === Test Switches ===
+switch:
+  - platform: template
+    id: light_living_room
+    name: "Salon"
+    optimistic: true
+  - platform: template
+    id: light_bedroom
+    name: "Chambre"
+    optimistic: true
+
+# === Dial Menu Configuration ===
+dial_menu:
+  id: menu_controller
+  display_id: round_display
+  time_id: sntp_time
+  idle_timeout: 30s
+  language: fr
+  font_14: montserrat_fr_14  # Use French fonts
+  font_18: montserrat_fr_18
+  apps:
+    - name: "Settings"
+      icon_type: settings
+      color: 0xFD5C4C
+    - name: "WiFi"
+      icon_type: wifi
+      color: 0x577EFF
+    - name: "Lumières"
+      type: switch
+      icon_type: light
+      color: 0xFFB300
+      switches:
+        - switch_id: light_living_room
+          name: "Salon"
+          color: 0xFFB300
+        - switch_id: light_bedroom
+          name: "Chambre"
+          color: 0x9C27B0

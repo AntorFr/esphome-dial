@@ -1,0 +1,37 @@
+# French Font Support Package for Dial Menu
+# Include this to support French accented characters (é, è, à, ç, etc.)
+#
+# Usage in your main YAML:
+#   packages:
+#     french_fonts: !include packages/french_fonts.yaml
+#
+# Then in dial_menu config:
+#   dial_menu:
+#     font_14: montserrat_fr_14
+#     font_18: montserrat_fr_18
+
+font:
+  - file: "gfonts://Montserrat"
+    id: montserrat_fr_14
+    size: 14
+    bpp: 4
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°àâäçèéêëîïôùûüÿœæÀÂÄÇÈÉÊËÎÏÔÙÛÜŸŒÆ"
+  - file: "gfonts://Montserrat"
+    id: montserrat_fr_18
+    size: 18
+    bpp: 4
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°àâäçèéêëîïôùûüÿœæÀÂÄÇÈÉÊËÎÏÔÙÛÜŸŒÆ"
+
+# These hidden labels force compilation of the French fonts in LVGL
+lvgl:
+  pages:
+    - id: _french_fonts_page
+      widgets:
+        - label:
+            id: _lvfr14
+            hidden: true
+            text_font: montserrat_fr_14
+        - label:
+            id: _lvfr18
+            hidden: true
+            text_font: montserrat_fr_18

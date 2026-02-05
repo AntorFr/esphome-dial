@@ -1,0 +1,83 @@
+# M5Stack Dial Hardware Configuration Package
+# Include this in your ESPHome config to set up the M5Stack Dial hardware
+#
+# Usage in your main YAML:
+#   packages:
+#     m5dial: !include packages/m5stack_dial.yaml
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+# === Hardware Configuration ===
+i2c:
+  - id: internal_i2c
+    sda: GPIO11
+    scl: GPIO12
+
+spi:
+  id: spi_bus
+  mosi_pin: GPIO5
+  clk_pin: GPIO6
+
+# === Display ===
+display:
+  - platform: ili9xxx
+    id: round_display
+    model: GC9A01A
+    cs_pin: GPIO7
+    dc_pin: GPIO4
+    reset_pin: GPIO8
+    invert_colors: true
+    dimensions:
+      width: 240
+      height: 240
+    auto_clear_enabled: false
+    update_interval: never
+
+# === Touch ===
+touchscreen:
+  - platform: ft63x6
+    id: dial_touch
+    interrupt_pin: GPIO14
+    i2c_id: internal_i2c
+
+# === Backlight ===
+output:
+  - platform: ledc
+    pin: GPIO9
+    id: backlight_output
+
+light:
+  - platform: monochromatic
+    output: backlight_output
+    name: "Backlight"
+    id: backlight
+    restore_mode: ALWAYS_ON
+
+# === Encoder ===
+sensor:
+  - platform: rotary_encoder
+    id: dial_encoder
+    name: "Dial Encoder"
+    pin_a: GPIO40
+    pin_b: GPIO41
+    resolution: 1
+
+binary_sensor:
+  - platform: gpio
+    id: dial_button
+    name: "Dial Button"
+    pin:
+      number: GPIO42
+      mode: INPUT_PULLUP
+      inverted: true

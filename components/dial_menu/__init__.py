@@ -1,19 +1,26 @@
 """
 dial_menu component for ESPHome - LVGL Backend
-Generates complete LVGL configuration from simple dial_menu YAML
+Generates a circular app launcher UI with LVGL.
 
-The user only needs to declare:
+The user declares apps in YAML, and the component creates the LVGL UI automatically.
+Supports multiple languages and custom fonts for accented characters.
+
+Example:
   dial_menu:
-    display: my_display
-    touchscreen: my_touch
-    encoder: my_encoder  
-    button: my_button
+    display_id: my_display
+    language: fr  # French
+    font_14: my_french_font  # Optional: for accented characters
     apps:
-      - name: "Settings"
-        icon_type: settings
-        color: 0xFD5C4C
+      - name: "Lumières"
+        type: switch
+        icon_type: light
+        switches:
+          - switch_id: my_switch
+            name: "Salon"
 
-And this component automatically generates the full LVGL configuration.
+For full examples, see:
+  - dial-menu.yaml (complete)
+  - dial-menu-simple.yaml (with packages)
 """
 import math
 import esphome.codegen as cg

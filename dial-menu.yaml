@@ -1,5 +1,7 @@
 # ESPHome Dial Menu - M5Stack Dial
-# Simplified configuration - LVGL UI is generated automatically!
+# Complete configuration example with French language support
+#
+# For a simpler setup using packages, see: dial-menu-simple.yaml
 #
 substitutions:
   device_name: dial-menu
@@ -164,6 +166,7 @@ switch:
     optimistic: true
 
 # === LVGL (minimal config - UI is created by dial_menu) ===
+# Note: The hidden widgets are required to enable LVGL features used by dial_menu
 lvgl:
   displays:
     - round_display
@@ -173,42 +176,32 @@ lvgl:
     - sensor: dial_encoder
       enter_button: dial_button
   buffer_size: 25%
-  
-  # Use built-in montserrat_48 as default for idle screen
   default_font: montserrat_48
-
-  # We need a page to avoid hello_world, and widgets to enable LVGL features
-  # Hidden labels force compilation of needed font sizes
+  # Hidden widgets to enable LVGL fonts and button component
   pages:
     - id: main_page
-      bg_color: 0x000000
       widgets:
-        # Hidden widgets to enable LVGL btn/label support and compile fonts
         - button:
-            id: _hidden_btn
+            id: _btn
             hidden: true
         - label:
-            id: _hidden_label
-            hidden: true
-        - label:
-            id: _font_14
+            id: _lv14
             hidden: true
             text_font: montserrat_14
         - label:
-            id: _font_18
+            id: _lv18
             hidden: true
             text_font: montserrat_18
         - label:
-            id: _font_28
+            id: _lv28
             hidden: true
             text_font: montserrat_28
-        # French font labels to force compilation
         - label:
-            id: _font_fr_14
+            id: _lvfr14
             hidden: true
             text_font: montserrat_fr_14
         - label:
-            id: _font_fr_18
+            id: _lvfr18
             hidden: true
             text_font: montserrat_fr_18
 
