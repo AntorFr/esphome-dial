@@ -139,6 +139,19 @@ void SwitchApp::create_app_ui() {
     }
   }
   
+  // Register state callbacks for all switches
+  for (size_t i = 0; i < this->switches_.size(); i++) {
+    if (this->switches_[i].sw != nullptr) {
+      this->switches_[i].sw->add_on_state_callback([this](bool state) {
+        // Only update if this app is currently active
+        if (g_current_switch_app == this) {
+          ESP_LOGD(TAG, "Switch state changed callback, refreshing UI");
+          this->update_state();
+        }
+      });
+    }
+  }
+  
   // Set initial state
   this->update_state();
   this->update_dots();
@@ -212,8 +225,7 @@ void SwitchApp::toggle() {
   ESP_LOGI(TAG, "Toggling switch: %s", current.name.c_str());
   current.sw->toggle();
   
-  // Update UI
-  this->update_state();
+  // Note: UI will be updated by the state callback when switch reports new state
 }
 
 void SwitchApp::state_btn_event_cb(lv_event_t *e) {
