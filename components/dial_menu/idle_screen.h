@@ -37,6 +37,9 @@ class IdleScreen {
   // Set the display language
   void set_language(Language lang) { this->language_ = lang; }
   
+  // Set custom font for French characters (18pt for day/month labels)
+  void set_font_18(const lv_font_t *font) { this->custom_font_18_ = font; }
+  
   // Create the idle screen UI
   void create_ui();
   
@@ -61,6 +64,7 @@ class IdleScreen {
   time::RealTimeClock *time_{nullptr};
   bool visible_{false};
   Language language_{Language::EN};
+  const lv_font_t *custom_font_18_{nullptr};  // Custom font with French characters
   
   // Get localized day/month names
   const char *get_day_name(int day_of_week);

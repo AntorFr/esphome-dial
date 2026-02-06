@@ -57,6 +57,10 @@ void DialMenuController::setup() {
   // Setup idle screen
   if (this->time_ != nullptr) {
     this->idle_screen_.set_time(this->time_);
+    // Pass custom font to idle screen for French accents
+    if (this->font_18_ != nullptr) {
+      this->idle_screen_.set_font_18(this->font_18_->get_lv_font());
+    }
     this->idle_screen_.create_ui();
     ESP_LOGI(TAG, "Idle screen initialized with time source");
   }

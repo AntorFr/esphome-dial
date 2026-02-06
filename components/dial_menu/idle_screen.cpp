@@ -45,7 +45,8 @@ void IdleScreen::create_ui() {
   this->day_label_ = lv_label_create(this->page_);
   lv_obj_align(this->day_label_, LV_ALIGN_TOP_MID, 0, 40);
   lv_obj_set_style_text_color(this->day_label_, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_set_style_text_font(this->day_label_, &lv_font_montserrat_18, 0);
+  // Use custom font if available (for French accents), otherwise fallback to LVGL default
+  lv_obj_set_style_text_font(this->day_label_, this->custom_font_18_ ? this->custom_font_18_ : &lv_font_montserrat_18, 0);
   lv_label_set_text(this->day_label_, "Monday");
   
   // Large time display - hours
@@ -73,7 +74,8 @@ void IdleScreen::create_ui() {
   this->month_label_ = lv_label_create(this->page_);
   lv_obj_align(this->month_label_, LV_ALIGN_CENTER, 60, 15);
   lv_obj_set_style_text_color(this->month_label_, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_set_style_text_font(this->month_label_, &lv_font_montserrat_18, 0);
+  // Use custom font if available (for French accents), otherwise fallback to LVGL default
+  lv_obj_set_style_text_font(this->month_label_, this->custom_font_18_ ? this->custom_font_18_ : &lv_font_montserrat_18, 0);
   lv_label_set_text(this->month_label_, "June");
   
   ESP_LOGI(TAG, "Idle screen UI created");
