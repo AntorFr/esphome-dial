@@ -13,6 +13,8 @@
 #include "esphome/components/time/real_time_clock.h"
 #include "esphome/components/font/font.h"
 #include "idle_screen.h"
+// Note: App-specific headers (switch_app.h, cover_app.h, etc.) should be included
+// in the .cpp files that need them, not here, to avoid circular dependencies.
 #include <vector>
 #include <string>
 

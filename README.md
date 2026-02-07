@@ -9,10 +9,10 @@ A beautiful circular dial menu component for **M5Stack Dial** and similar ESP32-
 ✨ **Simple YAML Configuration** - Just define your apps, the component handles all LVGL complexity  
 🎨 **Circular App Launcher** - Beautiful rotating menu with smooth animations  
 🔄 **Encoder Navigation** - Rotate to select, click to open  
-📱 **App System** - Extensible app framework with built-in Switch control  
+📱 **App System** - Multiple app types: Switch, Cover, Climate, Media Player  
 ⏰ **Idle Screen / Screensaver** - Clock display with time-based background colors  
 🌍 **Multi-language Support** - English and French localization  
-🔌 **Home Assistant Ready** - Control your smart home devices  
+🔌 **Home Assistant Ready** - Control your smart home devices directly  
 
 ## Quick Start (ESPHome Dashboard)
 
@@ -196,7 +196,57 @@ dial_menu:
   color: 0xFD5C4C
 ```
 
-#### Switch App (Home Assistant)
+#### Switch App
+Control one or multiple switches:
+```yaml
+- name: "Lights"
+  type: switch
+  icon_type: light
+  color: 0xFFB300
+  switches:
+    - switch_id: living_room_light
+      name: "Living Room"
+    - switch_id: bedroom_light
+      name: "Bedroom"
+```
+
+#### Cover App
+Control gates, blinds, garage doors:
+```yaml
+- name: "Gate"
+  type: cover
+  icon_type: gate
+  color: 0x577EFF
+  covers:
+    - cover_id: front_gate
+      name: "Front Gate"
+```
+
+#### Climate App
+Control a thermostat with encoder temperature adjustment:
+```yaml
+- name: "Thermostat"
+  type: climate
+  icon_type: thermostat
+  color: 0x03A964
+  climate_id: living_room_climate
+  temperature_step: 0.5  # Optional, default 0.5°C
+```
+
+#### Media Player App
+Control a Home Assistant media player:
+```yaml
+- name: "Music"
+  type: media_player
+  icon_type: speaker
+  color: 0x9C27B0
+  media_player_id: living_room_speaker
+  volume_step: 0.05  # Optional, default 5%
+```
+
+> **Note:** Media Player requires the `homeassistant_media_player` component (see below).
+
+#### Generic App
 ```yaml
 - name: "Living Room"
   icon_type: light
@@ -207,7 +257,7 @@ dial_menu:
 
 ### Available Icons
 
-`settings`, `wifi`, `bluetooth`, `brightness`, `home`, `music`, `timer`, `temperature`, `power`, `light`, `fan`, `lock`, `play`, `pause`, `stop`, `next`, `info`, `warning`, `check`, `cross`
+`settings`, `wifi`, `bluetooth`, `brightness`, `home`, `music`, `timer`, `temperature`, `power`, `light`, `fan`, `lock`, `play`, `pause`, `stop`, `next`, `info`, `warning`, `check`, `cross`, `gate`, `garage`, `blinds`, `window`, `thermostat`, `hvac`, `media_player`, `speaker`, `tv`
 
 ## Navigation
 
@@ -238,6 +288,36 @@ Check the [examples/](examples/) folder for:
 
 Or use **dial-menu.yaml** for a full local development example.
 
+## Home Assistant Components
+
+### homeassistant_climate
+Import a climate entity from Home Assistant (not available natively in ESPHome):
+```yaml
+external_components:
+  - source: github://antorfr/esphome-dial@main
+    components: [dial_menu, homeassistant_climate]
+
+homeassistant_climate:
+  - id: my_thermostat
+    entity_id: climate.living_room
+    temperature_step: 0.5
+    min_temperature: 15
+    max_temperature: 30
+```
+
+### homeassistant_media_player
+Import a media player entity from Home Assistant:
+```yaml
+external_components:
+  - source: github://antorfr/esphome-dial@main
+    components: [dial_menu, homeassistant_media_player]
+
+homeassistant_media_player:
+  - id: my_speaker
+    entity_id: media_player.living_room
+    volume_step: 0.05
+```
+
 ## Project Structure
 
 ```
@@ -250,11 +330,18 @@ esphome-dial/
 ├── examples/                # Example configurations
 │   └── minimal.yaml           # Copy-paste ready
 ├── components/
-│   └── dial_menu/
-│       ├── __init__.py          # ESPHome component
-│       ├── dial_menu_controller.h/cpp
-│       ├── idle_screen.h/cpp
-│       └── switch_app.h/cpp
+│   ├── dial_menu/
+│   │   ├── __init__.py
+│   │   ├── dial_menu_controller.h/cpp
+│   │   ├── idle_screen.h/cpp
+│   │   ├── switch_app.h/cpp
+│   │   ├── cover_app.h/cpp
+│   │   ├── climate_app.h/cpp
+│   │   └── media_player_app.h/cpp
+│   ├── homeassistant_climate/
+│   │   └── ...                # HA Climate component
+│   └── homeassistant_media_player/
+│       └── ...                # HA Media Player component
 └── fonts/
     └── montserrat/          # Custom fonts
 

@@ -32,12 +32,21 @@ from esphome.const import (
     CONF_DISPLAY_ID,
 )
 from esphome.components import switch
+from esphome.components import cover
 from esphome.components import time as time_component
 from esphome.components import font
 
 CODEOWNERS = ["@antorfr"]
 DEPENDENCIES = ["lvgl"]
 AUTO_LOAD = []
+
+# Reference to homeassistant_climate and homeassistant_media_player components
+# These are local components, so we reference them by namespace
+homeassistant_climate_ns = cg.esphome_ns.namespace("homeassistant_climate")
+HomeassistantClimate = homeassistant_climate_ns.class_("HomeassistantClimate", cg.Component)
+
+homeassistant_media_player_ns = cg.esphome_ns.namespace("homeassistant_media_player")
+HomeassistantMediaPlayer = homeassistant_media_player_ns.class_("HomeassistantMediaPlayer", cg.Component)
 
 # Configuration keys
 CONF_ENCODER_ID = "encoder"
@@ -51,6 +60,12 @@ CONF_BUTTON_SIZE = "button_size"
 CONF_BUTTON_SIZE_FOCUSED = "button_size_focused"
 CONF_SWITCH_ID = "switch_id"
 CONF_SWITCHES = "switches"
+CONF_COVER_ID = "cover_id"
+CONF_COVERS = "covers"
+CONF_CLIMATE_ID = "climate_id"
+CONF_TEMPERATURE_STEP = "temperature_step"
+CONF_MEDIA_PLAYER_ID = "media_player_id"
+CONF_VOLUME_STEP = "volume_step"
 CONF_IDLE_TIMEOUT = "idle_timeout"
 CONF_TIME_ID = "time_id"
 CONF_LANGUAGE = "language"
@@ -83,6 +98,15 @@ ICON_FONTAWESOME = {
     "warning": "\uF071",       # exclamation-triangle
     "check": "\uF00C",         # check
     "cross": "\uF00D",         # times
+    "gate": "\uF52B",          # door-open (for gates/portals)
+    "garage": "\uF52B",        # door-open (alias for garage doors)
+    "blinds": "\uF8A0",        # blinds
+    "window": "\uF8A0",        # blinds (alias for windows)
+    "thermostat": "\uF2C9",    # thermometer (for climate/thermostat)
+    "hvac": "\uF2C9",          # thermometer (alias for HVAC)
+    "media_player": "\uF001",  # music (for media player)
+    "speaker": "\uF028",       # volume-up (for speakers)
+    "tv": "\uF26C",            # tv
 }
 
 # Default colors for apps
@@ -104,6 +128,9 @@ dial_menu_ns = cg.esphome_ns.namespace("dial_menu")
 DialMenuController = dial_menu_ns.class_("DialMenuController", cg.Component)
 DialApp = dial_menu_ns.class_("DialApp")
 SwitchApp = dial_menu_ns.class_("SwitchApp", DialApp)
+CoverApp = dial_menu_ns.class_("CoverApp", DialApp)
+ClimateApp = dial_menu_ns.class_("ClimateApp", DialApp)
+MediaPlayerApp = dial_menu_ns.class_("MediaPlayerApp", DialApp)
 
 
 def app_schema(app_type):
@@ -127,6 +154,15 @@ SWITCH_ITEM_SCHEMA = cv.Schema(
     }
 )
 
+# Schéma pour un cover individuel dans la liste
+COVER_ITEM_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_COVER_ID): cv.use_id(cover.Cover),
+        cv.Required(CONF_NAME): cv.string,
+        cv.Optional(CONF_COLOR): cv.hex_uint32_t,
+    }
+)
+
 # Schéma pour une app - supports single switch_id or list of switches
 APP_SCHEMA = cv.Schema(
     {
@@ -137,6 +173,12 @@ APP_SCHEMA = cv.Schema(
         cv.Optional(CONF_TYPE, default="generic"): cv.string,
         cv.Optional(CONF_SWITCH_ID): cv.use_id(switch.Switch),
         cv.Optional(CONF_SWITCHES): cv.ensure_list(SWITCH_ITEM_SCHEMA),
+        cv.Optional(CONF_COVER_ID): cv.use_id(cover.Cover),
+        cv.Optional(CONF_COVERS): cv.ensure_list(COVER_ITEM_SCHEMA),
+        cv.Optional(CONF_CLIMATE_ID): cv.use_id(HomeassistantClimate),
+        cv.Optional(CONF_TEMPERATURE_STEP, default=0.5): cv.float_range(min=0.1, max=2.0),
+        cv.Optional(CONF_MEDIA_PLAYER_ID): cv.use_id(HomeassistantMediaPlayer),
+        cv.Optional(CONF_VOLUME_STEP, default=0.05): cv.float_range(min=0.01, max=0.2),
     }
 )
 
@@ -220,6 +262,68 @@ async def to_code(config):
                 sw = await cg.get_variable(app_conf[CONF_SWITCH_ID])
                 color = app_conf.get(CONF_COLOR, DEFAULT_COLORS[i % len(DEFAULT_COLORS)])
                 cg.add(app_var.add_switch(sw, app_conf[CONF_NAME], color))
+        elif app_type == "cover":
+            # CoverApp for controlling covers (gates, blinds, etc.)
+            cg.add_define("USE_DIAL_MENU_COVER")
+            app_id.type = CoverApp
+            app_var = cg.new_Pvariable(app_id)
+            
+            # Pass custom font to CoverApp
+            if font_14_var is not None:
+                cg.add(app_var.set_font_14(font_14_var))
+            
+            # Check for multiple covers first
+            if CONF_COVERS in app_conf:
+                for cv_conf in app_conf[CONF_COVERS]:
+                    cv_entity = await cg.get_variable(cv_conf[CONF_COVER_ID])
+                    cv_name = cv_conf[CONF_NAME]
+                    cv_color = cv_conf.get(CONF_COLOR, DEFAULT_COLORS[i % len(DEFAULT_COLORS)])
+                    cg.add(app_var.add_cover(cv_entity, cv_name, cv_color))
+            # Fallback to single cover_id
+            elif CONF_COVER_ID in app_conf:
+                cv_entity = await cg.get_variable(app_conf[CONF_COVER_ID])
+                color = app_conf.get(CONF_COLOR, DEFAULT_COLORS[i % len(DEFAULT_COLORS)])
+                cg.add(app_var.add_cover(cv_entity, app_conf[CONF_NAME], color))
+        elif app_type == "climate":
+            # ClimateApp for controlling a single thermostat
+            cg.add_define("USE_DIAL_MENU_CLIMATE")
+            app_id.type = ClimateApp
+            app_var = cg.new_Pvariable(app_id)
+            
+            # Pass custom fonts to ClimateApp
+            if font_14_var is not None:
+                cg.add(app_var.set_font_14(font_14_var))
+            if font_18_var is not None:
+                cg.add(app_var.set_font_18(font_18_var))
+            
+            # Set climate entity
+            if CONF_CLIMATE_ID in app_conf:
+                climate_entity = await cg.get_variable(app_conf[CONF_CLIMATE_ID])
+                cg.add(app_var.set_climate(climate_entity))
+            
+            # Set temperature step
+            temp_step = app_conf.get(CONF_TEMPERATURE_STEP, 0.5)
+            cg.add(app_var.set_temperature_step(temp_step))
+        elif app_type == "media_player":
+            # MediaPlayerApp for controlling a single media player
+            cg.add_define("USE_DIAL_MENU_MEDIA_PLAYER")
+            app_id.type = MediaPlayerApp
+            app_var = cg.new_Pvariable(app_id)
+            
+            # Pass custom fonts to MediaPlayerApp
+            if font_14_var is not None:
+                cg.add(app_var.set_font_14(font_14_var))
+            if font_18_var is not None:
+                cg.add(app_var.set_font_18(font_18_var))
+            
+            # Set media player entity
+            if CONF_MEDIA_PLAYER_ID in app_conf:
+                mp_entity = await cg.get_variable(app_conf[CONF_MEDIA_PLAYER_ID])
+                cg.add(app_var.set_media_player(mp_entity))
+            
+            # Set volume step
+            vol_step = app_conf.get(CONF_VOLUME_STEP, 0.05)
+            cg.add(app_var.set_volume_step(vol_step))
         else:
             # Generic DialApp
             app_var = cg.new_Pvariable(app_id)
