@@ -29,6 +29,9 @@ lvgl:
         - button:
             id: _btn
             hidden: true
+        - arc:
+            id: _arc
+            hidden: true
         - label:
             id: _lv14
             hidden: true
