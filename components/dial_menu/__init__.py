@@ -309,6 +309,9 @@ async def to_code(config):
             app_id.type = MediaPlayerApp
             app_var = cg.new_Pvariable(app_id)
             
+            # Set controller reference for language support
+            cg.add(app_var.set_controller(var))
+            
             # Pass custom fonts to MediaPlayerApp
             if font_14_var is not None:
                 cg.add(app_var.set_font_14(font_14_var))

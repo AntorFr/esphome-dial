@@ -1,3 +1,5 @@
+#include "esphome/core/defines.h"
+
 #ifdef USE_DIAL_MENU_MEDIA_PLAYER
 
 #include "media_player_app.h"
@@ -18,11 +20,11 @@ static const char *const TAG = "media_player_app";
 #define SYMBOL_VOLUME_UP "\xEF\x80\xA8"  // 
 #define SYMBOL_MUTE "\xEF\x80\xA6"       // 
 
-void MediaPlayerApp::create_ui(lv_obj_t *parent) {
+void MediaPlayerApp::create_app_ui() {
   ESP_LOGD(TAG, "Creating MediaPlayerApp UI for '%s'", this->name_.c_str());
 
   // Main container
-  this->container_ = lv_obj_create(parent);
+  this->container_ = lv_obj_create(lv_scr_act());
   lv_obj_remove_style_all(this->container_);
   lv_obj_set_size(this->container_, 240, 240);
   lv_obj_center(this->container_);
@@ -85,12 +87,11 @@ void MediaPlayerApp::create_ui(lv_obj_t *parent) {
   lv_obj_remove_style_all(btn_container);
   lv_obj_set_size(btn_container, 180, 50);
   lv_obj_align(btn_container, LV_ALIGN_CENTER, 0, 55);
-  lv_obj_set_flex_flow(btn_container, LV_FLEX_FLOW_ROW);
-  lv_obj_set_flex_align(btn_container, LV_FLEX_ALIGN_SPACE_EVENLY, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-  // Previous button
+  // Previous button (left)
   this->btn_prev_ = lv_btn_create(btn_container);
   lv_obj_set_size(this->btn_prev_, 50, 50);
+  lv_obj_align(this->btn_prev_, LV_ALIGN_LEFT_MID, 0, 0);
   lv_obj_set_style_radius(this->btn_prev_, LV_RADIUS_CIRCLE, 0);
   lv_obj_set_style_bg_color(this->btn_prev_, lv_color_hex(0x333333), 0);
   this->btn_prev_label_ = lv_label_create(this->btn_prev_);
@@ -98,9 +99,10 @@ void MediaPlayerApp::create_ui(lv_obj_t *parent) {
   lv_obj_set_style_text_font(this->btn_prev_label_, &lv_font_montserrat_18, 0);
   lv_obj_center(this->btn_prev_label_);
 
-  // Play/Pause button
+  // Play/Pause button (center)
   this->btn_play_ = lv_btn_create(btn_container);
   lv_obj_set_size(this->btn_play_, 50, 50);
+  lv_obj_align(this->btn_play_, LV_ALIGN_CENTER, 0, 0);
   lv_obj_set_style_radius(this->btn_play_, LV_RADIUS_CIRCLE, 0);
   lv_obj_set_style_bg_color(this->btn_play_, lv_color_hex(this->color_), 0);
   this->btn_play_label_ = lv_label_create(this->btn_play_);
@@ -108,9 +110,10 @@ void MediaPlayerApp::create_ui(lv_obj_t *parent) {
   lv_obj_set_style_text_font(this->btn_play_label_, &lv_font_montserrat_18, 0);
   lv_obj_center(this->btn_play_label_);
 
-  // Next button
+  // Next button (right)
   this->btn_next_ = lv_btn_create(btn_container);
   lv_obj_set_size(this->btn_next_, 50, 50);
+  lv_obj_align(this->btn_next_, LV_ALIGN_RIGHT_MID, 0, 0);
   lv_obj_set_style_radius(this->btn_next_, LV_RADIUS_CIRCLE, 0);
   lv_obj_set_style_bg_color(this->btn_next_, lv_color_hex(0x333333), 0);
   this->btn_next_label_ = lv_label_create(this->btn_next_);
@@ -123,19 +126,9 @@ void MediaPlayerApp::create_ui(lv_obj_t *parent) {
   lv_obj_set_style_outline_width(this->btn_play_, 2, 0);
   lv_obj_set_style_outline_color(this->btn_play_, lv_color_hex(0xFFFFFF), 0);
   lv_obj_set_style_outline_pad(this->btn_play_, 3, 0);
-
-  // Register state callback
-  if (this->media_player_ != nullptr) {
-    this->media_player_->add_on_state_callback([this]() {
-      this->update_ui();
-    });
-  }
-
-  // Initial UI update
-  this->update_ui();
 }
 
-void MediaPlayerApp::destroy_ui() {
+void MediaPlayerApp::on_exit() {
   if (this->container_ != nullptr) {
     lv_obj_del(this->container_);
     this->container_ = nullptr;
@@ -150,7 +143,22 @@ void MediaPlayerApp::destroy_ui() {
   }
 }
 
-void MediaPlayerApp::update_ui() {
+void MediaPlayerApp::on_enter() {
+  // Create the UI when entering the app
+  this->create_app_ui();
+  
+  // Register state callback
+  if (this->media_player_ != nullptr) {
+    this->media_player_->add_on_state_callback([this]() {
+      this->update_ui_();
+    });
+  }
+
+  // Initial UI update
+  this->update_ui_();
+}
+
+void MediaPlayerApp::update_ui_() {
   if (this->container_ == nullptr || this->media_player_ == nullptr) {
     return;
   }
@@ -291,7 +299,7 @@ void MediaPlayerApp::on_encoder_rotate(int direction) {
   }
 }
 
-void MediaPlayerApp::on_button_click() {
+void MediaPlayerApp::on_button_press() {
   if (this->media_player_ == nullptr) return;
 
   // Perform action based on selected button

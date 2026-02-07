@@ -91,12 +91,14 @@ class DialMenuController : public Component {
   void set_font_14(font::Font *font) { this->font_14_ = font; }
   void set_font_18(font::Font *font) { this->font_18_ = font; }
   void set_language(const std::string &lang) {
+    this->language_ = lang;
     if (lang == "fr") {
       this->idle_screen_.set_language(Language::FR);
     } else {
       this->idle_screen_.set_language(Language::EN);
     }
   }
+  bool is_french() const { return this->language_ == "fr"; }
   
   // Get LVGL font (use custom if set, otherwise fallback to built-in)
   const lv_font_t* get_font_14() const { 
@@ -154,6 +156,7 @@ class DialMenuController : public Component {
   // Custom fonts (optional, nullptr = use built-in)
   font::Font *font_14_{nullptr};
   font::Font *font_18_{nullptr};
+  std::string language_{"en"};
   
   // LVGL objects
   lv_obj_t *launcher_page_{nullptr};

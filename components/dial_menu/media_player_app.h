@@ -1,25 +1,29 @@
 #pragma once
 
+#include "esphome/core/defines.h"
+
 #ifdef USE_DIAL_MENU_MEDIA_PLAYER
 
-#include "esphome/core/component.h"
-#include "esphome/components/lvgl/lvgl_esphome.h"
+#include "dial_menu_controller.h"
 #include "esphome/components/font/font.h"
 #include "esphome/components/homeassistant_addon/homeassistant_media_player.h"
-#include <functional>
 #include <string>
 
 namespace esphome {
 namespace dial_menu {
 
-class DialMenuController;
-
-class MediaPlayerApp {
+/**
+ * @brief App that controls a Home Assistant media player
+ * 
+ * Features:
+ * - Volume control with encoder rotation
+ * - Play/Pause/Previous/Next controls
+ * - Media info display (title, artist)
+ * - Mute toggle
+ */
+class MediaPlayerApp : public DialApp {
  public:
-  MediaPlayerApp(DialMenuController *controller) : controller_(controller) {}
-
-  void set_name(const std::string &name) { this->name_ = name; }
-  void set_color(uint32_t color) { this->color_ = color; }
+  void set_controller(DialMenuController *controller) { this->controller_ = controller; }
   void set_media_player(homeassistant_addon::HomeassistantMediaPlayer *media_player) {
     this->media_player_ = media_player;
   }
@@ -27,29 +31,28 @@ class MediaPlayerApp {
   void set_font_14(font::Font *font) { this->font_14_ = font; }
   void set_font_18(font::Font *font) { this->font_18_ = font; }
 
-  const std::string &get_name() const { return this->name_; }
-  uint32_t get_color() const { return this->color_; }
+  // App lifecycle - called by DialMenuController
+  void on_enter() override;
+  void on_exit() override;
+  void on_button_press() override;
+  void on_encoder_rotate(int delta) override;
 
-  void create_ui(lv_obj_t *parent);
-  void destroy_ui();
-  void update_ui();
-
-  // User interactions
-  void on_encoder_rotate(int direction);
-  void on_button_click();
+  // This app needs its own UI page
+  bool needs_ui() const override { return true; }
+  
+  // Create the app-specific UI
+  void create_app_ui() override;
 
  protected:
+  void update_ui_();
   void update_state_display_();
   void update_media_info_();
   void update_volume_arc_();
   std::string get_state_text_();
   const char *get_state_icon_();
 
-  DialMenuController *controller_;
-  std::string name_;
-  uint32_t color_{0xFFFFFF};
-
   homeassistant_addon::HomeassistantMediaPlayer *media_player_{nullptr};
+  DialMenuController *controller_{nullptr};
   float volume_step_{0.05f};
   font::Font *font_14_{nullptr};
   font::Font *font_18_{nullptr};
