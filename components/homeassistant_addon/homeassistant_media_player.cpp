@@ -3,9 +3,9 @@
 #include "esphome/components/api/api_server.h"
 
 namespace esphome {
-namespace homeassistant_media_player {
+namespace homeassistant_addon {
 
-static const char *const TAG = "homeassistant_media_player";
+static const char *const TAG = "homeassistant_addon.media_player";
 
 void HomeassistantMediaPlayer::setup() {
   // Subscribe to state
@@ -224,5 +224,5 @@ void HomeassistantMediaPlayer::turn_off() {
   this->send_command_("turn_off");
 }
 
-}  // namespace homeassistant_media_player
+}  // namespace homeassistant_addon
 }  // namespace esphome

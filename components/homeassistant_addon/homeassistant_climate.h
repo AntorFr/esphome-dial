@@ -11,7 +11,7 @@
 #include "esphome/components/climate/climate.h"
 
 namespace esphome {
-namespace homeassistant_climate {
+namespace homeassistant_addon {
 
 /**
  * @brief Climate component that mirrors a Home Assistant climate entity
@@ -65,5 +65,5 @@ class HomeassistantClimate : public climate::Climate, public Component {
   bool received_state_{false};
 };
 
-}  // namespace homeassistant_climate
+}  // namespace homeassistant_addon
 }  // namespace esphome

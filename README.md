@@ -290,47 +290,51 @@ Or use **dial-menu.yaml** for a full local development example.
 
 ## Home Assistant Components
 
-These custom components allow importing Home Assistant entities that are not natively supported by ESPHome.
+The `homeassistant_addon` component provides entity types that are not natively available in ESPHome's homeassistant platform.
 
-### homeassistant_cover
-Import a cover (gate, blinds, garage door) from Home Assistant:
+### Usage
 ```yaml
 external_components:
   - source: github://antorfr/esphome-dial@main
-    components: [dial_menu, homeassistant_cover]
+    components: [dial_menu, homeassistant_addon]
 
-homeassistant_cover:
-  - id: my_gate
-    entity_id: cover.front_gate
+homeassistant_addon:
+  covers:
+    - id: my_gate
+      entity_id: cover.front_gate
+  climates:
+    - id: my_thermostat
+      entity_id: climate.living_room
+      temperature_step: 0.5
+      min_temperature: 15
+      max_temperature: 30
+  media_players:
+    - id: my_speaker
+      entity_id: media_player.living_room
+      volume_step: 0.05
 ```
 
-### homeassistant_climate
-Import a climate/thermostat entity from Home Assistant:
-```yaml
-external_components:
-  - source: github://antorfr/esphome-dial@main
-    components: [dial_menu, homeassistant_climate]
+### Cover Options
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `entity_id` | string | required | Home Assistant entity ID |
+| `id` | string | required | ESPHome ID for reference |
 
-homeassistant_climate:
-  - id: my_thermostat
-    entity_id: climate.living_room
-    temperature_step: 0.5
-    min_temperature: 15
-    max_temperature: 30
-```
+### Climate Options
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `entity_id` | string | required | Home Assistant entity ID |
+| `id` | string | required | ESPHome ID for reference |
+| `temperature_step` | float | `0.5` | Temperature increment |
+| `min_temperature` | float | `7.0` | Minimum temperature |
+| `max_temperature` | float | `35.0` | Maximum temperature |
 
-### homeassistant_media_player
-Import a media player entity from Home Assistant:
-```yaml
-external_components:
-  - source: github://antorfr/esphome-dial@main
-    components: [dial_menu, homeassistant_media_player]
-
-homeassistant_media_player:
-  - id: my_speaker
-    entity_id: media_player.living_room
-    volume_step: 0.05
-```
+### Media Player Options
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `entity_id` | string | required | Home Assistant entity ID |
+| `id` | string | required | ESPHome ID for reference |
+| `volume_step` | float | `0.05` | Volume increment (5%) |
 
 ## Project Structure
 
@@ -352,12 +356,11 @@ esphome-dial/
 │   │   ├── cover_app.h/cpp
 │   │   ├── climate_app.h/cpp
 │   │   └── media_player_app.h/cpp
-│   ├── homeassistant_cover/
-│   │   └── ...                # HA Cover component
-│   ├── homeassistant_climate/
-│   │   └── ...                # HA Climate component
-│   └── homeassistant_media_player/
-│       └── ...                # HA Media Player component
+│   └── homeassistant_addon/
+│       ├── __init__.py
+│       ├── homeassistant_cover.h/cpp
+│       ├── homeassistant_climate.h/cpp
+│       └── homeassistant_media_player.h/cpp
 └── fonts/
     └── montserrat/          # Custom fonts
 

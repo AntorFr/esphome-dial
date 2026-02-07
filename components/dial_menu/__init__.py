@@ -40,13 +40,12 @@ CODEOWNERS = ["@antorfr"]
 DEPENDENCIES = ["lvgl"]
 AUTO_LOAD = []
 
-# Reference to homeassistant_climate and homeassistant_media_player components
+# Reference to homeassistant_addon components (cover, climate, media_player)
 # These are local components, so we reference them by namespace
-homeassistant_climate_ns = cg.esphome_ns.namespace("homeassistant_climate")
-HomeassistantClimate = homeassistant_climate_ns.class_("HomeassistantClimate", cg.Component)
-
-homeassistant_media_player_ns = cg.esphome_ns.namespace("homeassistant_media_player")
-HomeassistantMediaPlayer = homeassistant_media_player_ns.class_("HomeassistantMediaPlayer", cg.Component)
+homeassistant_addon_ns = cg.esphome_ns.namespace("homeassistant_addon")
+HomeassistantCover = homeassistant_addon_ns.class_("HomeassistantCover", cg.Component)
+HomeassistantClimate = homeassistant_addon_ns.class_("HomeassistantClimate", cg.Component)
+HomeassistantMediaPlayer = homeassistant_addon_ns.class_("HomeassistantMediaPlayer", cg.Component)
 
 # Configuration keys
 CONF_ENCODER_ID = "encoder"

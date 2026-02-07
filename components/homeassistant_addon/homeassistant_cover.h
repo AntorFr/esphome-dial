@@ -5,7 +5,7 @@
 #include "esphome/components/api/api_server.h"
 
 namespace esphome {
-namespace homeassistant_cover {
+namespace homeassistant_addon {
 
 class HomeassistantCover : public cover::Cover, public Component {
  public:
@@ -32,5 +32,5 @@ class HomeassistantCover : public cover::Cover, public Component {
   bool supports_stop_{true};
 };
 
-}  // namespace homeassistant_cover
+}  // namespace homeassistant_addon
 }  // namespace esphome

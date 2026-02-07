@@ -8,9 +8,9 @@
 #include "esphome/core/log.h"
 
 namespace esphome {
-namespace homeassistant_climate {
+namespace homeassistant_addon {
 
-static const char *const TAG = "homeassistant_climate";
+static const char *const TAG = "homeassistant_addon.climate";
 
 void HomeassistantClimate::setup() {
   ESP_LOGI(TAG, "Setting up Home Assistant Climate '%s'...", this->entity_id_);
@@ -258,5 +258,5 @@ climate::ClimateAction HomeassistantClimate::ha_action_to_esphome(const std::str
   return climate::CLIMATE_ACTION_OFF;
 }
 
-}  // namespace homeassistant_climate
+}  // namespace homeassistant_addon
 }  // namespace esphome

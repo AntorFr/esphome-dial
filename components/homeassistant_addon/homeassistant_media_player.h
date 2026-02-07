@@ -6,7 +6,7 @@
 #include <functional>
 
 namespace esphome {
-namespace homeassistant_media_player {
+namespace homeassistant_addon {
 
 enum class MediaPlayerState : uint8_t {
   UNKNOWN = 0,
@@ -77,5 +77,5 @@ class HomeassistantMediaPlayer : public Component {
   CallbackManager<void()> state_callback_;
 };
 
-}  // namespace homeassistant_media_player
+}  // namespace homeassistant_addon
 }  // namespace esphome

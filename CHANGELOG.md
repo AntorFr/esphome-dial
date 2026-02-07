@@ -11,9 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CoverApp** - Control gates, blinds, garage doors with Open/Stop/Close buttons
 - **ClimateApp** - Thermostat control with encoder temperature adjustment
 - **MediaPlayerApp** - Media player control with play/pause, prev/next, volume control
-- **homeassistant_cover** - New ESPHome component to import Home Assistant cover entities (gates, blinds, garage doors)
-- **homeassistant_climate** - New ESPHome component to import Home Assistant climate entities
-- **homeassistant_media_player** - New ESPHome component to import Home Assistant media player entities
+- **homeassistant_addon** - New unified ESPHome component providing:
+  - `covers:` - Import Home Assistant cover entities (gates, blinds, garage doors)
+  - `climates:` - Import Home Assistant climate/thermostat entities
+  - `media_players:` - Import Home Assistant media player entities
 - New icons: `gate`, `garage`, `blinds`, `window`, `thermostat`, `hvac`, `media_player`, `speaker`, `tv`
 - Volume control via encoder in MediaPlayerApp
 - Temperature control via encoder in ClimateApp

@@ -3,9 +3,9 @@
 #include "esphome/core/application.h"
 
 namespace esphome {
-namespace homeassistant_cover {
+namespace homeassistant_addon {
 
-static const char *const TAG = "homeassistant_cover";
+static const char *const TAG = "homeassistant_addon.cover";
 
 void HomeassistantCover::setup() {
   ESP_LOGD(TAG, "Setting up HomeAssistant Cover '%s' for entity '%s'", 
@@ -149,5 +149,5 @@ void HomeassistantCover::dump_config() {
   ESP_LOGCONFIG(TAG, "  Entity ID: %s", this->entity_id_.c_str());
 }
 
-}  // namespace homeassistant_cover
+}  // namespace homeassistant_addon
 }  // namespace esphome
