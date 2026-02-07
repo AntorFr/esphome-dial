@@ -8,6 +8,7 @@
 #pragma once
 
 #include "esphome/core/component.h"
+#include "esphome/core/string_ref.h"
 #include "esphome/components/climate/climate.h"
 
 namespace esphome {

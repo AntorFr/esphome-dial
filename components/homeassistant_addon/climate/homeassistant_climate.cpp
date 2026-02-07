@@ -18,9 +18,10 @@ void HomeassistantClimate::setup() {
   // Subscribe to the main state (hvac_mode)
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, optional<std::string>(), 
-      [this](const std::string &state) {
-        ESP_LOGD(TAG, "'%s': Got state: %s", this->entity_id_, state.c_str());
-        this->parse_hvac_mode(state);
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        ESP_LOGD(TAG, "'%s': Got state: %s", this->entity_id_, state_str.c_str());
+        this->parse_hvac_mode(state_str);
         this->received_state_ = true;
         this->publish_state();
       });
@@ -28,27 +29,30 @@ void HomeassistantClimate::setup() {
   // Subscribe to current_temperature attribute
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, std::string("current_temperature"),
-      [this](const std::string &state) {
-        ESP_LOGD(TAG, "'%s': Got current_temperature: %s", this->entity_id_, state.c_str());
-        this->parse_current_temperature(state);
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        ESP_LOGD(TAG, "'%s': Got current_temperature: %s", this->entity_id_, state_str.c_str());
+        this->parse_current_temperature(state_str);
         this->publish_state();
       });
   
   // Subscribe to temperature (target) attribute
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, std::string("temperature"),
-      [this](const std::string &state) {
-        ESP_LOGD(TAG, "'%s': Got target temperature: %s", this->entity_id_, state.c_str());
-        this->parse_target_temperature(state);
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        ESP_LOGD(TAG, "'%s': Got target temperature: %s", this->entity_id_, state_str.c_str());
+        this->parse_target_temperature(state_str);
         this->publish_state();
       });
   
   // Subscribe to hvac_action attribute (heating, cooling, idle, off)
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, std::string("hvac_action"),
-      [this](const std::string &state) {
-        ESP_LOGD(TAG, "'%s': Got hvac_action: %s", this->entity_id_, state.c_str());
-        this->parse_hvac_action(state);
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        ESP_LOGD(TAG, "'%s': Got hvac_action: %s", this->entity_id_, state_str.c_str());
+        this->parse_hvac_action(state_str);
         this->publish_state();
       });
 }
@@ -77,15 +81,11 @@ climate::ClimateTraits HomeassistantClimate::traits() {
       climate::CLIMATE_MODE_AUTO,
   });
   
-  // Temperature settings
-  traits.set_supports_current_temperature(true);
-  traits.set_supports_two_point_target_temperature(false);
+  // Temperature settings - use supported methods
+  traits.set_supports_current_temperature(true);  // deprecated but still works
   traits.set_visual_min_temperature(this->min_temperature_);
   traits.set_visual_max_temperature(this->max_temperature_);
   traits.set_visual_temperature_step(this->temperature_step_);
-  
-  // Actions
-  traits.set_supported_custom_presets({});  // Could add preset support later
   
   return traits;
 }
@@ -114,25 +114,28 @@ void HomeassistantClimate::send_set_temperature(float temperature) {
     return;
   }
   
-  api::HomeassistantServiceResponse resp;
-  resp.service = "climate.set_temperature";
-  resp.is_event = false;
+  static constexpr auto SERVICE_NAME = StringRef::from_lit("climate.set_temperature");
+  static constexpr auto ENTITY_ID_KEY = StringRef::from_lit("entity_id");
+  static constexpr auto TEMP_KEY = StringRef::from_lit("temperature");
   
-  // Entity ID
-  api::HomeassistantServiceMap entity_id_kv;
-  entity_id_kv.key = "entity_id";
-  entity_id_kv.value = this->entity_id_;
-  resp.data.push_back(entity_id_kv);
+  api::HomeassistantActionRequest req;
+  req.service = SERVICE_NAME;
   
-  // Temperature
-  api::HomeassistantServiceMap temp_kv;
-  temp_kv.key = "temperature";
+  std::string entity_id_str = this->entity_id_;
   char temp_str[16];
   snprintf(temp_str, sizeof(temp_str), "%.1f", temperature);
-  temp_kv.value = temp_str;
-  resp.data.push_back(temp_kv);
+  std::string temp_value = temp_str;
   
-  api::global_api_server->send_homeassistant_service_call(resp);
+  req.data.init(2);
+  auto &entity_id_kv = req.data.emplace_back();
+  entity_id_kv.key = ENTITY_ID_KEY;
+  entity_id_kv.value = StringRef(entity_id_str);
+  
+  auto &temp_kv = req.data.emplace_back();
+  temp_kv.key = TEMP_KEY;
+  temp_kv.value = StringRef(temp_value);
+  
+  api::global_api_server->send_homeassistant_action(req);
 }
 
 void HomeassistantClimate::send_set_hvac_mode(climate::ClimateMode mode) {
@@ -141,23 +144,26 @@ void HomeassistantClimate::send_set_hvac_mode(climate::ClimateMode mode) {
     return;
   }
   
-  api::HomeassistantServiceResponse resp;
-  resp.service = "climate.set_hvac_mode";
-  resp.is_event = false;
+  static constexpr auto SERVICE_NAME = StringRef::from_lit("climate.set_hvac_mode");
+  static constexpr auto ENTITY_ID_KEY = StringRef::from_lit("entity_id");
+  static constexpr auto MODE_KEY = StringRef::from_lit("hvac_mode");
   
-  // Entity ID
-  api::HomeassistantServiceMap entity_id_kv;
-  entity_id_kv.key = "entity_id";
-  entity_id_kv.value = this->entity_id_;
-  resp.data.push_back(entity_id_kv);
+  api::HomeassistantActionRequest req;
+  req.service = SERVICE_NAME;
   
-  // HVAC mode
-  api::HomeassistantServiceMap mode_kv;
-  mode_kv.key = "hvac_mode";
-  mode_kv.value = this->esphome_mode_to_ha(mode);
-  resp.data.push_back(mode_kv);
+  std::string entity_id_str = this->entity_id_;
+  std::string mode_str = this->esphome_mode_to_ha(mode);
   
-  api::global_api_server->send_homeassistant_service_call(resp);
+  req.data.init(2);
+  auto &entity_id_kv = req.data.emplace_back();
+  entity_id_kv.key = ENTITY_ID_KEY;
+  entity_id_kv.value = StringRef(entity_id_str);
+  
+  auto &mode_kv = req.data.emplace_back();
+  mode_kv.key = MODE_KEY;
+  mode_kv.value = StringRef(mode_str);
+  
+  api::global_api_server->send_homeassistant_action(req);
 }
 
 void HomeassistantClimate::parse_current_temperature(const std::string &state) {
@@ -255,6 +261,7 @@ climate::ClimateAction HomeassistantClimate::ha_action_to_esphome(const std::str
     return climate::CLIMATE_ACTION_FAN;
   }
   
+  ESP_LOGW(TAG, "Unknown HVAC action: %s", action.c_str());
   return climate::CLIMATE_ACTION_OFF;
 }
 

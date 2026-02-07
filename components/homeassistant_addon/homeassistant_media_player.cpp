@@ -11,23 +11,24 @@ void HomeassistantMediaPlayer::setup() {
   // Subscribe to state
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, nullopt,
-      [this](const std::string &state) {
-        ESP_LOGD(TAG, "'%s' state: %s", this->entity_id_.c_str(), state.c_str());
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        ESP_LOGD(TAG, "'%s' state: %s", this->entity_id_, state_str.c_str());
         
         MediaPlayerState new_state = MediaPlayerState::UNKNOWN;
-        if (state == "off") {
+        if (state_str == "off") {
           new_state = MediaPlayerState::OFF;
-        } else if (state == "on") {
+        } else if (state_str == "on") {
           new_state = MediaPlayerState::ON;
-        } else if (state == "idle") {
+        } else if (state_str == "idle") {
           new_state = MediaPlayerState::IDLE;
-        } else if (state == "playing") {
+        } else if (state_str == "playing") {
           new_state = MediaPlayerState::PLAYING;
-        } else if (state == "paused") {
+        } else if (state_str == "paused") {
           new_state = MediaPlayerState::PAUSED;
-        } else if (state == "standby") {
+        } else if (state_str == "standby") {
           new_state = MediaPlayerState::STANDBY;
-        } else if (state == "buffering") {
+        } else if (state_str == "buffering") {
           new_state = MediaPlayerState::BUFFERING;
         }
         
@@ -40,14 +41,15 @@ void HomeassistantMediaPlayer::setup() {
   // Subscribe to volume_level
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, std::string("volume_level"),
-      [this](const std::string &state) {
-        if (state.empty() || state == "None" || state == "unknown" || state == "unavailable") {
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        if (state_str.empty() || state_str == "None" || state_str == "unknown" || state_str == "unavailable") {
           return;
         }
-        auto val = parse_number<float>(state);
+        auto val = parse_number<float>(state_str);
         if (val.has_value()) {
           float new_vol = val.value();
-          ESP_LOGD(TAG, "'%s' volume: %.2f", this->entity_id_.c_str(), new_vol);
+          ESP_LOGD(TAG, "'%s' volume: %.2f", this->entity_id_, new_vol);
           if (std::abs(new_vol - this->volume_) > 0.001f) {
             this->volume_ = new_vol;
             this->state_callback_.call();
@@ -58,9 +60,10 @@ void HomeassistantMediaPlayer::setup() {
   // Subscribe to is_volume_muted
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, std::string("is_volume_muted"),
-      [this](const std::string &state) {
-        bool new_muted = (state == "True" || state == "true" || state == "1");
-        ESP_LOGD(TAG, "'%s' muted: %s", this->entity_id_.c_str(), state.c_str());
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        bool new_muted = (state_str == "True" || state_str == "true" || state_str == "1");
+        ESP_LOGD(TAG, "'%s' muted: %s", this->entity_id_, state_str.c_str());
         if (new_muted != this->muted_) {
           this->muted_ = new_muted;
           this->state_callback_.call();
@@ -70,17 +73,18 @@ void HomeassistantMediaPlayer::setup() {
   // Subscribe to media_title
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, std::string("media_title"),
-      [this](const std::string &state) {
-        if (state == "None" || state == "unknown" || state == "unavailable") {
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        if (state_str == "None" || state_str == "unknown" || state_str == "unavailable") {
           if (!this->media_title_.empty()) {
             this->media_title_ = "";
             this->state_callback_.call();
           }
           return;
         }
-        ESP_LOGD(TAG, "'%s' title: %s", this->entity_id_.c_str(), state.c_str());
-        if (state != this->media_title_) {
-          this->media_title_ = state;
+        ESP_LOGD(TAG, "'%s' title: %s", this->entity_id_, state_str.c_str());
+        if (state_str != this->media_title_) {
+          this->media_title_ = state_str;
           this->state_callback_.call();
         }
       });
@@ -88,17 +92,18 @@ void HomeassistantMediaPlayer::setup() {
   // Subscribe to media_artist
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, std::string("media_artist"),
-      [this](const std::string &state) {
-        if (state == "None" || state == "unknown" || state == "unavailable") {
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        if (state_str == "None" || state_str == "unknown" || state_str == "unavailable") {
           if (!this->media_artist_.empty()) {
             this->media_artist_ = "";
             this->state_callback_.call();
           }
           return;
         }
-        ESP_LOGD(TAG, "'%s' artist: %s", this->entity_id_.c_str(), state.c_str());
-        if (state != this->media_artist_) {
-          this->media_artist_ = state;
+        ESP_LOGD(TAG, "'%s' artist: %s", this->entity_id_, state_str.c_str());
+        if (state_str != this->media_artist_) {
+          this->media_artist_ = state_str;
           this->state_callback_.call();
         }
       });
@@ -106,17 +111,18 @@ void HomeassistantMediaPlayer::setup() {
   // Subscribe to source
   api::global_api_server->subscribe_home_assistant_state(
       this->entity_id_, std::string("source"),
-      [this](const std::string &state) {
-        if (state == "None" || state == "unknown" || state == "unavailable") {
+      [this](StringRef state) {
+        std::string state_str = state.str();
+        if (state_str == "None" || state_str == "unknown" || state_str == "unavailable") {
           if (!this->source_.empty()) {
             this->source_ = "";
             this->state_callback_.call();
           }
           return;
         }
-        ESP_LOGD(TAG, "'%s' source: %s", this->entity_id_.c_str(), state.c_str());
-        if (state != this->source_) {
-          this->source_ = state;
+        ESP_LOGD(TAG, "'%s' source: %s", this->entity_id_, state_str.c_str());
+        if (state_str != this->source_) {
+          this->source_ = state_str;
           this->state_callback_.call();
         }
       });
@@ -124,42 +130,50 @@ void HomeassistantMediaPlayer::setup() {
 
 void HomeassistantMediaPlayer::dump_config() {
   ESP_LOGCONFIG(TAG, "Home Assistant Media Player:");
-  ESP_LOGCONFIG(TAG, "  Entity ID: %s", this->entity_id_.c_str());
+  ESP_LOGCONFIG(TAG, "  Entity ID: %s", this->entity_id_);
   ESP_LOGCONFIG(TAG, "  Volume Step: %.2f", this->volume_step_);
 }
 
 void HomeassistantMediaPlayer::send_command_(const std::string &service) {
-  api::HomeassistantServiceResponse resp;
-  resp.service = "media_player." + service;
+  static constexpr auto ENTITY_ID_KEY = StringRef::from_lit("entity_id");
   
-  api::HomeassistantServiceMap entity_id_kv;
-  entity_id_kv.key = "entity_id";
-  entity_id_kv.value = this->entity_id_;
-  resp.data.push_back(entity_id_kv);
+  api::HomeassistantActionRequest req;
+  std::string full_service = "media_player." + service;
+  std::string entity_id_str = this->entity_id_;
   
-  ESP_LOGD(TAG, "Calling %s on %s", resp.service.c_str(), this->entity_id_.c_str());
-  api::global_api_server->send_homeassistant_service_call(resp);
+  req.service = StringRef(full_service);
+  req.data.init(1);
+  auto &entity_id_kv = req.data.emplace_back();
+  entity_id_kv.key = ENTITY_ID_KEY;
+  entity_id_kv.value = StringRef(entity_id_str);
+  
+  ESP_LOGD(TAG, "Calling %s on %s", full_service.c_str(), this->entity_id_);
+  api::global_api_server->send_homeassistant_action(req);
 }
 
 void HomeassistantMediaPlayer::send_command_with_data_(const std::string &service, 
                                                         const std::string &data_key, 
                                                         const std::string &data_value) {
-  api::HomeassistantServiceResponse resp;
-  resp.service = "media_player." + service;
+  static constexpr auto ENTITY_ID_KEY = StringRef::from_lit("entity_id");
   
-  api::HomeassistantServiceMap entity_id_kv;
-  entity_id_kv.key = "entity_id";
-  entity_id_kv.value = this->entity_id_;
-  resp.data.push_back(entity_id_kv);
+  api::HomeassistantActionRequest req;
+  std::string full_service = "media_player." + service;
+  std::string entity_id_str = this->entity_id_;
   
-  api::HomeassistantServiceMap data_kv;
-  data_kv.key = data_key;
-  data_kv.value = data_value;
-  resp.data.push_back(data_kv);
+  req.service = StringRef(full_service);
+  req.data.init(2);
   
-  ESP_LOGD(TAG, "Calling %s on %s with %s=%s", resp.service.c_str(), 
-           this->entity_id_.c_str(), data_key.c_str(), data_value.c_str());
-  api::global_api_server->send_homeassistant_service_call(resp);
+  auto &entity_id_kv = req.data.emplace_back();
+  entity_id_kv.key = ENTITY_ID_KEY;
+  entity_id_kv.value = StringRef(entity_id_str);
+  
+  auto &data_kv = req.data.emplace_back();
+  data_kv.key = StringRef(data_key);
+  data_kv.value = StringRef(data_value);
+  
+  ESP_LOGD(TAG, "Calling %s on %s with %s=%s", full_service.c_str(), 
+           this->entity_id_, data_key.c_str(), data_value.c_str());
+  api::global_api_server->send_homeassistant_action(req);
 }
 
 void HomeassistantMediaPlayer::send_command_with_float_(const std::string &service,

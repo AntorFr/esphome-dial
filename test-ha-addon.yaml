@@ -1,0 +1,57 @@
+# Test file for homeassistant_addon platforms
+substitutions:
+  device_name: test-ha-addon
+  friendly_name: Test HA Addon
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+external_components:
+  - source:
+      type: local
+      path: components
+    components: [homeassistant_addon]
+
+# Test the new platform syntax
+cover:
+  - platform: homeassistant_addon
+    id: test_gate
+    name: "Test Gate"
+    entity_id: cover.front_gate
+
+climate:
+  - platform: homeassistant_addon
+    id: test_thermostat
+    name: "Test Thermostat"
+    entity_id: climate.living_room
+    temperature_step: 0.5
+    min_temperature: 15
+    max_temperature: 30
+
+# Media player uses the component syntax (not a standard platform)
+homeassistant_addon:
+  media_players:
+    - id: test_speaker
+      entity_id: media_player.living_room
+      volume_step: 0.05

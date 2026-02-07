@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/core/component.h"
+#include "esphome/core/string_ref.h"
 #include "esphome/components/api/custom_api_device.h"
 #include <string>
 #include <functional>
@@ -25,11 +26,11 @@ class HomeassistantMediaPlayer : public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_CONNECTION; }
 
-  void set_entity_id(const std::string &entity_id) { this->entity_id_ = entity_id; }
+  void set_entity_id(const char *entity_id) { this->entity_id_ = entity_id; }
   void set_volume_step(float step) { this->volume_step_ = step; }
 
   // Getters
-  const std::string &get_entity_id() const { return this->entity_id_; }
+  const char *get_entity_id() const { return this->entity_id_; }
   MediaPlayerState get_state() const { return this->state_; }
   float get_volume() const { return this->volume_; }
   bool is_muted() const { return this->muted_; }
@@ -63,7 +64,7 @@ class HomeassistantMediaPlayer : public Component {
   void send_command_with_data_(const std::string &service, const std::string &data_key, const std::string &data_value);
   void send_command_with_float_(const std::string &service, const std::string &data_key, float data_value);
 
-  std::string entity_id_;
+  const char *entity_id_{nullptr};
   float volume_step_{0.05f};
 
   // State
