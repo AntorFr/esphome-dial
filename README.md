@@ -290,8 +290,22 @@ Or use **dial-menu.yaml** for a full local development example.
 
 ## Home Assistant Components
 
+These custom components allow importing Home Assistant entities that are not natively supported by ESPHome.
+
+### homeassistant_cover
+Import a cover (gate, blinds, garage door) from Home Assistant:
+```yaml
+external_components:
+  - source: github://antorfr/esphome-dial@main
+    components: [dial_menu, homeassistant_cover]
+
+homeassistant_cover:
+  - id: my_gate
+    entity_id: cover.front_gate
+```
+
 ### homeassistant_climate
-Import a climate entity from Home Assistant (not available natively in ESPHome):
+Import a climate/thermostat entity from Home Assistant:
 ```yaml
 external_components:
   - source: github://antorfr/esphome-dial@main
@@ -338,6 +352,8 @@ esphome-dial/
 │   │   ├── cover_app.h/cpp
 │   │   ├── climate_app.h/cpp
 │   │   └── media_player_app.h/cpp
+│   ├── homeassistant_cover/
+│   │   └── ...                # HA Cover component
 │   ├── homeassistant_climate/
 │   │   └── ...                # HA Climate component
 │   └── homeassistant_media_player/
