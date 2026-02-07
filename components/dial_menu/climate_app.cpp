@@ -240,7 +240,7 @@ void ClimateApp::create_app_ui() {
   
   // Register state callback
   if (this->climate_ != nullptr) {
-    this->climate_->add_on_state_callback([this]() {
+    this->climate_->add_on_state_callback([this](climate::Climate &) {
       if (g_current_climate_app == this) {
         ESP_LOGD(TAG, "Climate state changed, refreshing UI");
         // Update pending temp if no pending change
