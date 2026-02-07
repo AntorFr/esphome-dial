@@ -3,6 +3,8 @@
  * @brief Implementation of the Cover App with multi-cover support
  */
 
+#include "esphome/core/defines.h"
+
 #ifdef USE_DIAL_MENU_COVER
 
 #include "cover_app.h"

@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "esphome/core/defines.h"
+
 #ifdef USE_DIAL_MENU_CLIMATE
 
 #include "dial_menu_controller.h"

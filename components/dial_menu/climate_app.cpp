@@ -3,6 +3,8 @@
  * @brief Implementation of the Climate App for thermostat control
  */
 
+#include "esphome/core/defines.h"
+
 #ifdef USE_DIAL_MENU_CLIMATE
 
 #include "climate_app.h"

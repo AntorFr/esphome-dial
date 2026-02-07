@@ -8,6 +8,8 @@
  */
 #pragma once
 
+#include "esphome/core/defines.h"
+
 #ifdef USE_DIAL_MENU_COVER
 
 #include "dial_menu_controller.h"
