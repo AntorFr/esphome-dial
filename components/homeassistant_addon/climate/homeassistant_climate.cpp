@@ -81,8 +81,8 @@ climate::ClimateTraits HomeassistantClimate::traits() {
       climate::CLIMATE_MODE_AUTO,
   });
   
-  // Temperature settings - use supported methods
-  traits.set_supports_current_temperature(true);  // deprecated but still works
+  // Temperature settings
+  traits.add_feature_flags(climate::CLIMATE_SUPPORTS_CURRENT_TEMPERATURE);
   traits.set_visual_min_temperature(this->min_temperature_);
   traits.set_visual_max_temperature(this->max_temperature_);
   traits.set_visual_temperature_step(this->temperature_step_);
