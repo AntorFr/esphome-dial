@@ -186,7 +186,7 @@ void MediaPlayerApp::update_state_display_() {
   // Update play/pause button icon
   if (this->btn_play_label_ != nullptr) {
     auto state = this->media_player_->get_state();
-    if (state == homeassistant_media_player::MediaPlayerState::PLAYING) {
+    if (state == homeassistant_addon::MediaPlayerState::PLAYING) {
       lv_label_set_text(this->btn_play_label_, SYMBOL_PAUSE);
     } else {
       lv_label_set_text(this->btn_play_label_, SYMBOL_PLAY);
@@ -244,19 +244,19 @@ std::string MediaPlayerApp::get_state_text_() {
 
   auto state = this->media_player_->get_state();
   switch (state) {
-    case homeassistant_media_player::MediaPlayerState::PLAYING:
+    case homeassistant_addon::MediaPlayerState::PLAYING:
       return is_french ? "Lecture" : "Playing";
-    case homeassistant_media_player::MediaPlayerState::PAUSED:
+    case homeassistant_addon::MediaPlayerState::PAUSED:
       return is_french ? "Pause" : "Paused";
-    case homeassistant_media_player::MediaPlayerState::IDLE:
+    case homeassistant_addon::MediaPlayerState::IDLE:
       return is_french ? "Inactif" : "Idle";
-    case homeassistant_media_player::MediaPlayerState::OFF:
+    case homeassistant_addon::MediaPlayerState::OFF:
       return is_french ? "Éteint" : "Off";
-    case homeassistant_media_player::MediaPlayerState::ON:
+    case homeassistant_addon::MediaPlayerState::ON:
       return is_french ? "Allumé" : "On";
-    case homeassistant_media_player::MediaPlayerState::STANDBY:
+    case homeassistant_addon::MediaPlayerState::STANDBY:
       return is_french ? "Veille" : "Standby";
-    case homeassistant_media_player::MediaPlayerState::BUFFERING:
+    case homeassistant_addon::MediaPlayerState::BUFFERING:
       return is_french ? "Chargement..." : "Buffering...";
     default:
       return is_french ? "Inconnu" : "Unknown";

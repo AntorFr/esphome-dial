@@ -5,7 +5,7 @@
 #include "esphome/core/component.h"
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "esphome/components/font/font.h"
-#include "esphome/components/homeassistant_media_player/homeassistant_media_player.h"
+#include "esphome/components/homeassistant_addon/homeassistant_media_player.h"
 #include <functional>
 #include <string>
 
@@ -20,7 +20,7 @@ class MediaPlayerApp {
 
   void set_name(const std::string &name) { this->name_ = name; }
   void set_color(uint32_t color) { this->color_ = color; }
-  void set_media_player(homeassistant_media_player::HomeassistantMediaPlayer *media_player) {
+  void set_media_player(homeassistant_addon::HomeassistantMediaPlayer *media_player) {
     this->media_player_ = media_player;
   }
   void set_volume_step(float step) { this->volume_step_ = step; }
@@ -49,7 +49,7 @@ class MediaPlayerApp {
   std::string name_;
   uint32_t color_{0xFFFFFF};
 
-  homeassistant_media_player::HomeassistantMediaPlayer *media_player_{nullptr};
+  homeassistant_addon::HomeassistantMediaPlayer *media_player_{nullptr};
   float volume_step_{0.05f};
   font::Font *font_14_{nullptr};
   font::Font *font_18_{nullptr};
