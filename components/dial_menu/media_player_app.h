@@ -58,6 +58,7 @@ class MediaPlayerApp : public DialApp {
   font::Font *font_18_{nullptr};
 
   // UI elements
+  lv_obj_t *page_{nullptr};
   lv_obj_t *container_{nullptr};
   lv_obj_t *volume_arc_{nullptr};
   lv_obj_t *title_label_{nullptr};

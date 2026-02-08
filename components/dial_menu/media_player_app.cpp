@@ -23,8 +23,12 @@ static const char *const TAG = "media_player_app";
 void MediaPlayerApp::create_app_ui() {
   ESP_LOGD(TAG, "Creating MediaPlayerApp UI for '%s'", this->name_.c_str());
 
-  // Main container
-  this->container_ = lv_obj_create(lv_scr_act());
+  // Create a separate page for this app
+  this->page_ = lv_obj_create(nullptr);
+  lv_obj_set_style_bg_color(this->page_, lv_color_hex(0x000000), 0);
+
+  // Main container on the page
+  this->container_ = lv_obj_create(this->page_);
   lv_obj_remove_style_all(this->container_);
   lv_obj_set_size(this->container_, 240, 240);
   lv_obj_center(this->container_);
@@ -129,32 +133,28 @@ void MediaPlayerApp::create_app_ui() {
 }
 
 void MediaPlayerApp::on_exit() {
-  if (this->container_ != nullptr) {
-    lv_obj_del(this->container_);
-    this->container_ = nullptr;
-    this->volume_arc_ = nullptr;
-    this->title_label_ = nullptr;
-    this->artist_label_ = nullptr;
-    this->state_label_ = nullptr;
-    this->volume_label_ = nullptr;
-    this->btn_prev_ = nullptr;
-    this->btn_play_ = nullptr;
-    this->btn_next_ = nullptr;
-  }
+  ESP_LOGI(TAG, "Exiting MediaPlayerApp: %s", this->name_.c_str());
+  // Don't delete UI - it's persistent on the page
 }
 
 void MediaPlayerApp::on_enter() {
-  // Create the UI when entering the app
-  this->create_app_ui();
+  ESP_LOGI(TAG, "Entering MediaPlayerApp: %s", this->name_.c_str());
   
-  // Register state callback
-  if (this->media_player_ != nullptr) {
+  // Load the app page
+  if (this->page_ != nullptr) {
+    lv_scr_load(this->page_);
+  }
+  
+  // Register state callback (only once)
+  static bool callback_registered = false;
+  if (this->media_player_ != nullptr && !callback_registered) {
     this->media_player_->add_on_state_callback([this]() {
       this->update_ui_();
     });
+    callback_registered = true;
   }
 
-  // Initial UI update
+  // Update UI
   this->update_ui_();
 }
 
