@@ -27,7 +27,7 @@ static const char* get_lvgl_symbol(const std::string &icon_type) {
   if (icon_type == "home") return LV_SYMBOL_HOME;
   if (icon_type == "music") return LV_SYMBOL_AUDIO;
   if (icon_type == "timer") return LV_SYMBOL_BELL;  // No clock, use bell
-  if (icon_type == "temperature") return LV_SYMBOL_CHARGE;  // No thermometer
+  if (icon_type == "temperature") return LV_SYMBOL_CHARGE;  // No thermometer in LVGL
   if (icon_type == "power") return LV_SYMBOL_POWER;
   if (icon_type == "light") return LV_SYMBOL_CHARGE;  // No lightbulb, use charge
   if (icon_type == "fan") return LV_SYMBOL_REFRESH;
@@ -40,6 +40,18 @@ static const char* get_lvgl_symbol(const std::string &icon_type) {
   if (icon_type == "warning") return LV_SYMBOL_WARNING;
   if (icon_type == "check") return LV_SYMBOL_OK;
   if (icon_type == "cross") return LV_SYMBOL_CLOSE;
+  // Media player and speaker icons
+  if (icon_type == "speaker") return LV_SYMBOL_VOLUME_MAX;
+  if (icon_type == "media_player") return LV_SYMBOL_AUDIO;
+  if (icon_type == "tv") return LV_SYMBOL_VIDEO;
+  // Climate/thermostat icons - no thermometer in LVGL, use tint (droplet)
+  if (icon_type == "thermostat") return LV_SYMBOL_TINT;
+  if (icon_type == "hvac") return LV_SYMBOL_TINT;
+  // Cover/gate icons - no door in LVGL, use directory (folder with open effect)
+  if (icon_type == "gate") return LV_SYMBOL_RIGHT;     // Arrow for gate movement
+  if (icon_type == "garage") return LV_SYMBOL_UP;      // Up arrow for garage door
+  if (icon_type == "blinds") return LV_SYMBOL_BARS;    // Bars for blinds
+  if (icon_type == "window") return LV_SYMBOL_BARS;
   return LV_SYMBOL_DUMMY;  // Empty symbol for unknown
 }
 
